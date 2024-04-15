@@ -29,16 +29,19 @@ import (
 )
 
 var (
-	userKey       = "FXOSS_USER"
-	hostKey       = "FXOSS_HOST"
-	pwdKey        = "FXOSS_PWD"
-	sshUserKey    = "FXOSS_SSH_USER"
-	sshPwdKey     = "FXOSS_SSH_PWD"
-	confDirKey    = "FXOSS_DIR"
-	defaultRetry  = 3
-	tokenJSON     = "token.json"
-	excelFileName = "cds_message.xls"
-	envList       = [...]string{userKey, hostKey, pwdKey, sshUserKey, sshPwdKey}
+	userKey               = "FXOSS_USER"
+	hostKey               = "FXOSS_HOST"
+	pwdKey                = "FXOSS_PWD"
+	sshUserKey            = "FXOSS_SSH_USER"
+	sshPwdKey             = "FXOSS_SSH_PWD"
+	confDirKey            = "FXOSS_DIR"
+	sohostKey             = "FXOSS_SO_HOST"
+	iotAccessKeyIdKey     = "FXOSS_IOT_KEY"
+	iotAccessKeySecretKey = "FXOSS_IOT_KEY_SECRET"
+	defaultRetry          = 3
+	tokenJSON             = "token.json"
+	excelFileName         = "cds_message.xls"
+	envList               = [...]string{userKey, hostKey, pwdKey, sshUserKey, sshPwdKey, sohostKey, iotAccessKeyIdKey, iotAccessKeySecretKey}
 )
 
 type cdsResult struct {

@@ -57,12 +57,25 @@ func init() {
 	rootCmd.AddCommand(cdsReportShow)
 	// make web root partion
 	rootCmd.AddCommand(cdsWebRoot)
+	// smart outlet
+	rootCmd.AddCommand(soShowCmd, soRestartCmd)
 }
 
 func requiredSN(cmd *cobra.Command, args []string) error {
 	if len(args) != 1 {
 		return fmt.Errorf("cds sn is required")
 	}
+	return nil
+}
+
+func requiredICCID(cmd *cobra.Command, args []string) error {
+	if len(args) != 1 {
+		return fmt.Errorf("smart outlet iccid is required")
+	}
+	if len(args[0]) != 15 {
+		return fmt.Errorf("length of iccid should be 15(number)")
+	}
+
 	return nil
 }
 
@@ -291,4 +304,58 @@ func runWebRoot(cmd *cobra.Command, args []string) {
 		utils.ErrorPrintln(err.Error(), false)
 	}
 
+}
+
+// soShowCmd return smart outlet info
+var soShowCmd = &cobra.Command{
+	Use:     "so-list",
+	Short:   "Get smart outlet info",
+	PreRunE: func(cmd *cobra.Command, args []string) error { return app.CheckEnvironment() },
+	Run:     runSoList,
+	Args:    cobra.MaximumNArgs(1),
+}
+
+func runSoList(cmd *cobra.Command, args []string) {
+	var option string
+	app, err := app.NewSOServer(*debug)
+	if err != nil {
+		utils.ErrorPrintln(err.Error(), false)
+		return
+	}
+
+	if len(args) == 1 {
+		option = args[0]
+	}
+	err = app.ShowSOList(option)
+	if err != nil {
+		utils.ErrorPrintln(err.Error(), false)
+		return
+	}
+}
+
+// soRestartCmd restart the smart outlet
+var soRestartCmd = &cobra.Command{
+	Use:     "so-restart",
+	Short:   "Restart the smart outlet by iccid",
+	PreRunE: func(cmd *cobra.Command, args []string) error { return app.CheckEnvironment() },
+	Run:     runSoRestart,
+	Args:    requiredICCID,
+}
+
+func runSoRestart(cmd *cobra.Command, args []string) {
+	var deviceName string
+	app, err := app.NewSOServer(*debug)
+	if err != nil {
+		utils.ErrorPrintln(err.Error(), false)
+		return
+	}
+
+	if len(args) == 1 {
+		deviceName = args[0]
+	}
+	err = app.RestartSO(deviceName)
+	if err != nil {
+		utils.ErrorPrintln(err.Error(), false)
+		return
+	}
 }

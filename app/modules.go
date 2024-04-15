@@ -51,6 +51,25 @@ type cdsDetail struct {
 	CDS *cdsInfo `json:"cds"`
 }
 
+type soList struct {
+	SO []*soInfo `json:"data"`
+}
+
+type soInfo struct {
+	ProbeSN     string `json:"probeSn"`
+	OutletSN    string `json:"outletSn"`
+	OutletICCID string `json:"outletIccid"`
+	Customer    string `json:"customer"`
+}
+
+type soApiResponse struct {
+	Code         int    `json:"code"`
+	Data         string `json:"data"`
+	Id           string `json:"id"`
+	LocalizedMsg string `json:"localizedMsg"`
+	Message      string `json:"message"`
+}
+
 type label struct {
 	ID      int64  `json:"id"`
 	Name    string `json:"name"`
