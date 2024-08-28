@@ -61,12 +61,13 @@ func (so *SOServer) RestartSO(deviceName string) error {
 		return err
 	}
 	utils.SuccessPrintln("stopped the smart outlet")
-	time.Sleep(5 * time.Second)
+	time.Sleep(10 * time.Second)
 	err = so.StartSO(deviceName)
 	if err != nil {
 		return err
 	}
 	utils.SuccessPrintln("started the smart outlet")
+	time.Sleep(10 * time.Second)
 
 	return nil
 }
@@ -82,11 +83,16 @@ func (so *SOServer) operateSO(deviceName string, opCode operationCode) error {
 		"a1mjUUWlC16", // else
 	}
 
+	so.logger.Println("Creating AliIotApiClient")
 	client, err := utils.CreateAliIotApiClient(iotSecretKeyId, iotSecretKeySecretKey)
 	if err != nil {
 		utils.ErrorPrintln(errorMsg, false)
 		return fmt.Errorf("%s, %v", errorMsg, err)
 	}
+	if client == nil {
+		return errors.New("client creation failed, client is nil")
+	}
+
 	for _, key := range productKeyList {
 		params := map[string]interface{}{
 			"items": map[string]operationCode{
@@ -102,27 +108,39 @@ func (so *SOServer) operateSO(deviceName string, opCode operationCode) error {
 			SetParams(params).
 			SetRequest(req)
 		runtime := new(util.RuntimeOptions)
+
+		so.logger.Println("Sending API request")
 		resp, err := client.DoRequest(tea.String("/cloud/thing/properties/set"), tea.String("HTTPS"), tea.String("POST"), nil, body, runtime)
-		b, _ := io.ReadAll(resp.Body)
-		var data = &soApiResponse{}
-		err = json.Unmarshal(b, data)
 		if err != nil {
-			so.logger.Printf("failed to decode response data", false)
-			return err
+			return fmt.Errorf("API request failed, %v", err)
 		}
-
-		// 调用成功直接退出 for 循环
-		if data.Code == 200 {
-			break
+		if resp == nil {
+			return errors.New("API response is nil")
 		}
+		if resp.Body != nil {
+			b, _ := io.ReadAll(resp.Body)
+			var data = &soApiResponse{}
+			err = json.Unmarshal(b, data)
+			if err != nil {
+				so.logger.Printf("failed to decode response data", false)
+				return err
+			}
 
-		// productKey 不对则尝试下一个
-		if data.Code == 6100 {
-			continue
-		}
+			// 调用成功直接退出 for 循环
+			if data.Code == 200 {
+				break
+			}
 
-		if data.Code != 200 {
-			return errors.New("ErrorCode: " + strconv.Itoa(data.Code) + " - " + data.LocalizedMsg)
+			// productKey 不对则尝试下一个
+			if data.Code == 6100 {
+				continue
+			}
+
+			if data.Code != 200 {
+				return errors.New("ErrorCode: " + strconv.Itoa(data.Code) + " - " + data.LocalizedMsg)
+			}
+		} else {
+			return errors.New("API response body is nil")
 		}
 	}
 
